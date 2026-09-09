@@ -45,6 +45,7 @@ import re
 import subprocess
 import tempfile
 from functools import cache
+from importlib.resources import files
 from pathlib import Path
 
 import tomlrt
@@ -410,6 +411,103 @@ def serialize_inline_labels(entries: list[dict[str, Any]]) -> str:
     return tomlrt.dumps(doc)
 
 
+def _extra_label_files(base: Path) -> dict[str, Path]:
+    """Label definition files beside the exported `labels.toml`.
+
+    Hand-written files committed under `extra-labels/` in the repository, plus
+    any downloaded from `labels.extra-files` into the export directory. Keyed
+    by filename so a download shadows a committed file of the same name, which
+    is what happened when both landed in the same directory.
+
+    :param base: Directory holding the export, per `apply_labels`' `labels_dir`.
+    """
+    extra_files: dict[str, Path] = {}
+    for extra_dir in (Path("extra-labels"), base / "extra-labels"):
+        if not extra_dir.is_dir():
+            continue
+        for label_file in sorted(extra_dir.iterdir()):
+            if label_file.is_file():
+                extra_files[label_file.name] = label_file
+    return extra_files
+
+
+def _names_in_labelmaker_config(text: str) -> set[str]:
+    """Every label name a labelmaker TOML declares, across all its profiles.
+
+    Walks `profiles.*.labels[].name` rather than one named profile, so the
+    same reader serves the bundled `labels.toml` (which carries `default` and
+    `awesome`), a hand-written `extra-labels/` file, and the inline block
+    {func}`serialize_inline_labels` emits.
+
+    A `rename-from` entry is deliberately **not** a declaration: it names a
+    label expected to stop existing, so counting it would hide the very
+    orphan {func}`~repomatic.lint_repo.check_undeclared_labels` looks for.
+
+    :param text: Contents of a labelmaker TOML config.
+    :return: The declared label names. Empty when the file cannot be parsed.
+    """
+    try:
+        data = tomlrt.loads(text).to_dict()
+    except tomlrt.TOMLParseError:
+        logging.warning("Skipping unparseable label config.")
+        return set()
+    names: set[str] = set()
+    for profile in (data.get("profiles") or {}).values():
+        if not isinstance(profile, dict):
+            continue
+        for label in profile.get("labels") or ():
+            name = str(label.get("name", "")).strip()
+            if name:
+                names.add(name)
+    return names
+
+
+def declared_label_names(
+    config: Config,
+    *,
+    is_awesome: bool,
+    labels_dir: Path | None = None,
+) -> set[str]:
+    """Every label name the configured sources declare for a repository.
+
+    Reads the same four sources {func}`apply_labels` writes, in the same order
+    and through the same `extra-labels/` discovery, which is what lets
+    {func}`~repomatic.lint_repo.check_undeclared_labels` call anything outside
+    this set an orphan. The two functions must keep agreeing: a source added to
+    one and not the other makes that check report labels the sync itself
+    creates.
+
+    The bundled definitions are read from the installed package rather than
+    from a staged export, so the answer does not depend on `sync-labels`
+    having run first.
+
+    :param config: The resolved `[tool.repomatic]` configuration.
+    :param is_awesome: Whether the repository is an `awesome-*` list, which
+        adds the `awesome` profile on top of `default`.
+    :param labels_dir: Directory holding a staged export, per `apply_labels`.
+    """
+    bundled = (
+        files("repomatic.data").joinpath("labels.toml").read_text(encoding="UTF-8")
+    )
+    data = tomlrt.loads(bundled).to_dict()
+    profiles = data.get("profiles") or {}
+    wanted = ("default", "awesome") if is_awesome else ("default",)
+
+    names: set[str] = set()
+    for profile_id in wanted:
+        for label in (profiles.get(profile_id) or {}).get("labels") or ():
+            name = str(label.get("name", "")).strip()
+            if name:
+                names.add(name)
+
+    base = Path() if labels_dir is None else labels_dir
+    for label_file in _extra_label_files(base).values():
+        names |= _names_in_labelmaker_config(label_file.read_text(encoding="UTF-8"))
+
+    names |= _names_in_labelmaker_config(serialize_inline_labels(config.labels.extra))
+    return names
+
+
 def _run_labelmaker(labelmaker_path: Path, *args: str) -> None:
     """Run a `labelmaker` command.
 
@@ -465,18 +563,7 @@ def apply_labels(
     """
     base = Path() if labels_dir is None else labels_dir
     labels_toml = str(base / "labels.toml")
-
-    # Hand-written files committed under `extra-labels/` in the repository,
-    # plus any downloaded from `labels.extra-files` into the export directory.
-    # Keyed by filename so a download shadows a committed file of the same
-    # name, which is what happened when both landed in the same directory.
-    extra_files: dict[str, Path] = {}
-    for extra_dir in (Path("extra-labels"), base / "extra-labels"):
-        if not extra_dir.is_dir():
-            continue
-        for label_file in sorted(extra_dir.iterdir()):
-            if label_file.is_file():
-                extra_files[label_file.name] = label_file
+    extra_files = _extra_label_files(base)
 
     lm = ensure_binary("labelmaker")
 

@@ -49,6 +49,7 @@ from .github.actions import NULL_SHA, AnnotationLevel, emit_annotation
 from .github.gh import gh_api_json, gh_graphql, run_gh_command
 from .github.matrix import PYTHON_VERSION_AXIS
 from .github.token import check_all_pat_permissions
+from .labels import declared_label_names
 from .matrix_axes import (
     TEST_RUNNERS_FULL,
     TEST_RUNNERS_PR,
@@ -512,6 +513,55 @@ def check_stale_draft_releases(repo: str) -> CheckResult:
         msg = f"Stale draft releases found: {tags}. Delete these leftover drafts."
         return CheckResult(False, msg)
     return CheckResult(True, "No stale draft releases.")
+
+
+def check_undeclared_labels(repo: str, declared: frozenset[str]) -> CheckResult:
+    """Report labels the repository carries that no configured source declares.
+
+    `sync-labels` runs `labelmaker apply`, which creates, updates and renames
+    but never deletes. So a label retired from
+    {func}`~repomatic.labels.declared_label_names`' sources keeps existing on
+    GitHub, and no other job will ever mention it again. This is the only
+    reading that closes that loop.
+
+    Advisory on purpose, and it must stay that way on both counts. A repository
+    may legitimately carry a hand-made label nobody declared, so a red run would
+    be wrong; and deleting a label detaches every issue and pull request
+    carrying it, which is a judgement no check should push someone into making
+    quickly. `meta-package-manager` is the case in point: of nine orphans found
+    on 2026-09-08, eight carried nothing and one carried 864 items, and only
+    the counts told them apart.
+
+    :param repo: Repository in 'owner/repo' format.
+    :param declared: Every label name the configured sources declare.
+    :return: A `CheckResult`.
+    """
+    # No `--jq` here: it is rejected alongside `--slurp`, and without `--slurp`
+    # it would emit bare newline-separated names rather than JSON. Paginating
+    # the plain endpoint merges the pages into one array on its own.
+    payload = gh_api_json([
+        "api",
+        "--paginate",
+        f"repos/{repo}/labels?per_page=100",
+    ])
+    if not isinstance(payload, list):
+        return CheckResult(
+            None, "Undeclared labels check: skipped (could not query API)."
+        )
+
+    names = {str(entry["name"]) for entry in payload if entry.get("name")}
+    orphans = sorted(names - set(declared))
+    if orphans:
+        listed = ", ".join(f"'{name}'" for name in orphans)
+        msg = (
+            f"Labels present on the repository but declared nowhere: {listed}. "
+            "Count what each one carries before deleting it, with "
+            f"`gh api 'search/issues?q=repo:{repo}+label:\"<name>\"' --jq "
+            "'.total_count'`: a label holding items needs its items moved first, "
+            "since deleting it detaches them."
+        )
+        return CheckResult(False, msg)
+    return CheckResult(True, f"All {len(names)} labels are declared.")
 
 
 def check_install_guide_downloads(repo: str) -> CheckResult:
@@ -2836,6 +2886,13 @@ class LintContext:
     {func}`check_manpages_toolchain` gates on.
     """
 
+    declared_labels: frozenset[str] = frozenset()
+    """Every label name the configured sources declare, per `sync-labels`.
+
+    Resolved here rather than inside {func}`check_undeclared_labels` so the
+    check reads its expectation from the same place the sync writes it.
+    """
+
     @cached_property
     def repo_metadata(self) -> dict[str, str | None]:
         """The repository's GitHub-side description and homepage.
@@ -2948,6 +3005,9 @@ class LintContext:
             has_notifications_pat=has_notifications_pat,
             unsubscribe_active=config.notification_unsubscribe,
             manpages_script=config.manpages_script,
+            declared_labels=frozenset(
+                declared_label_names(config, is_awesome=metadata.is_awesome)
+            ),
         )
 
 
@@ -3271,6 +3331,11 @@ REPO_CHECKS: tuple[RepoCheck, ...] = (
         "stale-draft-releases",
         lambda ctx: check_stale_draft_releases(ctx.repo or ""),
         applies=lambda ctx: bool(ctx.repo),
+    ),
+    RepoCheck(
+        "undeclared-labels",
+        lambda ctx: check_undeclared_labels(ctx.repo or "", ctx.declared_labels),
+        applies=lambda ctx: bool(ctx.repo and ctx.declared_labels),
     ),
     RepoCheck(
         "install-guide-downloads",

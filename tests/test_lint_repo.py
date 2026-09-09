@@ -23,10 +23,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 from repomatic import lint_repo
 from repomatic.cli.setup import show_metadata
+from repomatic.config import Config
 from repomatic.github.token import PAT_PERMISSION_PROBES, probe_pat_permission
+from repomatic.labels import (
+    _names_in_labelmaker_config,
+    declared_label_names,
+    serialize_inline_labels,
+)
 from repomatic.lint_repo import (
     REPO_CHECKS,
     CheckResult,
@@ -55,6 +60,7 @@ from repomatic.lint_repo import (
     check_stale_gh_pages_branch,
     check_test_matrix_excludes,
     check_topics_subset_of_keywords,
+    check_undeclared_labels,
     check_website_for_sphinx,
     check_workflow_permissions,
     documentation_url,
@@ -67,6 +73,7 @@ from repomatic.metadata.core import METADATA_VALUE_OPTIONS
 from repomatic.pypi import TrustedPublisher
 from repomatic.registry import INSTALL_GUIDE_PATH
 from repomatic.release.prepare_release import SELF_PIN_COOLDOWN_EXEMPTION
+
 from tests.conftest import metadata_from_pyproject, pat_results
 
 
@@ -2527,3 +2534,103 @@ def test_setup_uv_checksum_coverage_skips_without_a_pinned_version(tmp_path):
 def test_setup_uv_checksum_coverage_skips_without_workflows(tmp_path):
     """A repository with no workflow has nothing to check."""
     assert check_setup_uv_checksum_coverage(tmp_path).passed is None
+
+
+# --- Undeclared labels check unit tests ---
+
+
+def _labels_payload(*names: str) -> list[dict[str, str]]:
+    """A `GET /repos/{repo}/labels` payload carrying *names*."""
+    return [{"name": name, "color": "ffffff", "description": ""} for name in names]
+
+
+def test_undeclared_labels_detected():
+    """Report a label the repository carries that no source declares."""
+    with patch("repomatic.lint_repo.gh_api_json") as mock_gh:
+        mock_gh.return_value = _labels_payload("🐛 bug", "📦 manager: nala")
+        result = check_undeclared_labels("owner/repo", frozenset({"🐛 bug"}))
+        assert result.passed is False
+        assert "📦 manager: nala" in result.message
+        # The declared one is never named as an orphan.
+        assert "🐛 bug" not in result.message
+
+
+def test_undeclared_labels_warns_before_deleting():
+    """The finding carries the usage count step, not just the names.
+
+    Deleting a label detaches every item carrying it, so a check that only
+    named the orphans would invite exactly the loss it exists to prevent.
+    """
+    with patch("repomatic.lint_repo.gh_api_json") as mock_gh:
+        mock_gh.return_value = _labels_payload("📦 dependencies")
+        result = check_undeclared_labels("owner/repo", frozenset({"🐛 bug"}))
+        assert result.passed is False
+        assert "detaches" in result.message
+        assert "search/issues" in result.message
+
+
+def test_undeclared_labels_clean():
+    """No finding when every label on the repository is declared."""
+    with patch("repomatic.lint_repo.gh_api_json") as mock_gh:
+        mock_gh.return_value = _labels_payload("🐛 bug", "🤖 ci")
+        result = check_undeclared_labels(
+            "owner/repo", frozenset({"🐛 bug", "🤖 ci", "❔ question"})
+        )
+        assert result.passed is True
+        # A declared label the repository lacks is the sync's job, not a finding.
+        assert "❔ question" not in result.message
+
+
+def test_undeclared_labels_skips_on_an_unreadable_api():
+    """An unreachable API is indeterminate, never a red run."""
+    with patch("repomatic.lint_repo.gh_api_json") as mock_gh:
+        mock_gh.return_value = None
+        result = check_undeclared_labels("owner/repo", frozenset({"🐛 bug"}))
+        assert result.passed is None
+        assert "skipped" in result.message
+
+
+def test_undeclared_labels_is_advisory():
+    """The check never fails the command.
+
+    A repository may legitimately carry a hand-made label, and deleting one is
+    a judgement call. Both make a red run the wrong answer.
+    """
+    check = next(c for c in lint_repo.REPO_CHECKS if c.name == "undeclared-labels")
+    assert check.fatal is False
+
+
+def test_declared_label_names_reads_the_bundled_profiles():
+    """The default profile is always read, the awesome one only for a list."""
+    config = Config()
+    plain = declared_label_names(config, is_awesome=False)
+    awesome = declared_label_names(config, is_awesome=True)
+    assert "🐛 bug" in plain
+    assert "🆕 new link" not in plain
+    assert awesome > plain
+    assert "🆕 new link" in awesome
+
+
+def test_declared_label_names_excludes_rename_sources():
+    """A `rename-from` value is not a declaration.
+
+    It names a label expected to stop existing, so counting it as declared
+    would hide the orphan left behind when the rename does not fire. That is
+    how `meta-package-manager` carried `📦 dependencies` and its 864 items
+    unreported for six months.
+    """
+    names = _names_in_labelmaker_config(
+        serialize_inline_labels([
+            {
+                "name": "🔗 dependencies",
+                "color": "9daf0d",
+                "rename-from": ["📦 dependencies"],
+            }
+        ])
+    )
+    assert names == {"🔗 dependencies"}
+
+
+def test_declared_label_names_survives_an_unparseable_extra_file():
+    """One broken label file never empties the declared set."""
+    assert _names_in_labelmaker_config("this is not = valid = toml") == set()
