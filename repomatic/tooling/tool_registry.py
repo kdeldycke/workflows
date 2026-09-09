@@ -1069,27 +1069,27 @@ CHECKSUMS: dict[str, dict[PlatformKey, str]] = {
         (
             LINUX,
             AARCH64,
-        ): "cf689084f3a3618f7eae4a2420d335d74626d65f5e594b9828d125d69f800d86",
+        ): "564eff56a61e8caf193efde16937fba879eb62a3a479c9dd6be2001e7647680b",
         (
             LINUX,
             X86_64,
-        ): "3b8ac6b30336802fc1a858d7c084e11cdf24ac1a761ca90b68022d7d729208de",
+        ): "ed4960225d2833e04a61590d9fa2b5773d147f3aa375459e5466a40c102f3832",
         (
             MACOS,
             AARCH64,
-        ): "8cfb027cc5310675f2b830eac8f9865c1155a45ffcf9757f699fdd5a22046ca4",
+        ): "94d4bd7e88563a9cb414e651e88acc4f1728a87476752460906d824230748d37",
         (
             MACOS,
             X86_64,
-        ): "734c7bbd0bc56a3974500ee9aea74d60f0e5b89be09e92b9d9148939a3a1e0e6",
+        ): "70c05750c75df9465bc73b994e8bc379243bb494271f1b51f54ead2e19e45471",
         (
             WINDOWS,
             AARCH64,
-        ): "79e53db4e50b5c9594890a1c4d9dc941f6d19f7c3ca6d1f50982eda624607b9b",
+        ): "59878454cbcb67efb6d2cff0652d14fc6938c459fcfae23aafcfa01ee5af7068",
         (
             WINDOWS,
             X86_64,
-        ): "c28c7b3b584967a05b74d9eaf7481bff24ddc34930bf2d6e442c148236561eb1",
+        ): "ea040d0ba03176440d13481caf67f742236c3b38ce1d4442a9da37e9bb98d8f2",
     },
     "gitleaks": {
         (
@@ -1205,23 +1205,23 @@ CHECKSUMS: dict[str, dict[PlatformKey, str]] = {
         (
             LINUX,
             AARCH64,
-        ): "a520651f52199efc91a27aa2b82362e93d50e7d96386d3d48b28c2ad06b9ae4e",
+        ): "a48feb58c517977ca953e634507c72819d64df8717c33ced3e43868d174fd39e",
         (
             LINUX,
             X86_64,
-        ): "a1497c9626ba0bab731b3e37c12ac9051bbfa2a253463d4d574c28f190b5497b",
+        ): "edf0545109aee6a22751d04ddecb97c45be47d3aa0409564fb895eeeace91b1e",
         (
             MACOS,
             AARCH64,
-        ): "3c9e3cdc20fbed3812c1f2060650398e88af0c0a251bbe069398752dd71513ed",
+        ): "2c940734b44b6e199e165278b662b7e17c68f068471a2a8a5e491ce635414ae6",
         (
             MACOS,
             X86_64,
-        ): "ab88faa54ab9ceac55c6fc2a9841ceab8ef883ed46522dbcbde2ec7a110350b0",
+        ): "b31ccf2f21154b2bc8d2a84f395f746106edda0feec4817fbecdb12216df53bd",
         (
             WINDOWS,
             X86_64,
-        ): "a48abe229e6fd48729ee891b2c410c41bfa9dc15ca77815e723c4b66c311c53c",
+        ): "8740867a0d9e44a62f0803e37a669ec3c6cd17ab63cd49d00e14a96d3e03ccc3",
     },
 }
 """Tool name to platform-keyed SHA-256 hex digest mapping.
@@ -1235,13 +1235,13 @@ the registry, and so `VERSIONS` can anchor the offline staleness test.
 VERSIONS: dict[str, str] = {
     "actionlint": "1.7.12",
     "biome": "2.5.11",
-    "gh": "2.98.0",
+    "gh": "2.99.0",
     "gitleaks": "8.30.1",
     "labelmaker": "0.6.4",
     "lychee": "0.24.2",
     "oxipng": "10.2.0",
     "shfmt": "3.14.0",
-    "typos": "1.50.0",
+    "typos": "1.50.1",
 }
 """Tool name to the version each checksum set was computed for.
 
@@ -1452,7 +1452,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "gh": ToolSpec(
         name="gh",
         display_name="GitHub CLI",
-        version="2.98.0",
+        version="2.99.0",
         source_url="https://github.com/cli/cli",
         cli_docs_url="https://cli.github.com/manual/",
         binary=BinarySpec(
@@ -1855,7 +1855,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     "pyproject-fmt": ToolSpec(
         name="pyproject-fmt",
         default_paths="pyproject_files",
-        version="2.28.2",
+        version="2.29.3",
         source_url="https://github.com/tox-dev/pyproject-fmt",
         config_docs_url="https://pyproject-fmt.readthedocs.io/en/latest/",
         cli_docs_url="https://pyproject-fmt.readthedocs.io/en/latest/",
@@ -1958,7 +1958,7 @@ TOOL_REGISTRY: dict[str, ToolSpec] = {
     ),
     "typos": ToolSpec(
         name="typos",
-        version="1.50.0",
+        version="1.50.1",
         source_url="https://github.com/crate-ci/typos",
         config_docs_url="https://github.com/crate-ci/typos/blob/master/docs/reference.md",
         cli_docs_url="https://github.com/crate-ci/typos/blob/master/docs/reference.md",
