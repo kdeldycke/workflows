@@ -66,6 +66,7 @@ from repomatic.sync_ops import (
     _resolve_action_pins,
     _resolve_dep_sources,
     _resolve_tool_versions,
+    _resolve_workflow_pins,
     _widest_changes,
     operation_order,
     render_plan_markdown,
@@ -981,7 +982,7 @@ def test_uv_gate_drops_unverifiable_releases():
     Without this, `sync-workflow-pins` walks uv past the table on its own
     schedule and CI installs it with no verification at all.
     """
-    gated = _gate(frozenset({"0.12.2", "0.12.3"}))
+    gated, _unverified = _gate(frozenset({"0.12.2", "0.12.3"}))
     assert [candidate.version for candidate in gated] == ["0.12.2", "0.12.3"]
     picked = select_latest(gated, MIN_AGE, GATE_TODAY)
     assert picked is not None and picked.version == "0.12.3"
@@ -1004,17 +1005,19 @@ def test_uv_gate_reads_the_action_pin_out_of_the_scanned_files():
 
 def test_uv_gate_passes_everything_through_when_the_table_is_unknown():
     """An unreadable table degrades to the ungated behaviour, never to a block."""
-    assert _gate(None) == UV_CANDIDATES
+    assert _gate(None) == (UV_CANDIDATES, False)
 
 
-def test_uv_gate_never_downgrades_a_pin_above_the_table():
-    """A pin already past the table stays put instead of walking backwards.
+def test_uv_gate_reports_a_pin_above_the_table():
+    """A pin past the table is signalled back, so the caller can step it down.
 
-    The gate only removes candidates; the caller adopts one solely when it
-    beats what is pinned, so the repair stays a `sync-action-pins` bump.
+    Reported rather than silently gated, because the sync only walks a version
+    backwards on this one condition.
     """
-    gated = _gate(frozenset({"0.11.30"}), pinned="0.12.3")
-    assert select_latest(gated, MIN_AGE, GATE_TODAY) is None
+    gated, unverified = _gate(frozenset({"0.12.2", "0.12.3"}), pinned="0.12.5")
+    assert unverified is True
+    picked = select_latest(gated, MIN_AGE, GATE_TODAY)
+    assert picked is not None and picked.version == "0.12.3"
 
 
 def test_uv_gate_warns_when_the_pinned_uv_is_unverified(caplog):
@@ -1027,8 +1030,9 @@ def test_uv_gate_warns_when_the_pinned_uv_is_unverified(caplog):
 def test_uv_gate_stays_quiet_when_the_pinned_uv_is_verified(caplog):
     """A covered pin is the normal state and earns no warning."""
     with caplog.at_level(logging.WARNING):
-        _gate(frozenset({"0.12.3", "0.12.4"}), pinned="0.12.3")
+        _gated, unverified = _gate(frozenset({"0.12.3", "0.12.4"}), pinned="0.12.3")
     assert not caplog.text
+    assert unverified is False
 
 
 def test_uv_gate_reports_a_release_it_withheld(caplog):
@@ -1042,3 +1046,33 @@ def test_uv_gate_reports_a_release_it_withheld(caplog):
         _gate(frozenset({"0.12.3"}), pinned="0.12.3")
     assert "0.12.4" in caplog.text
     assert "holding the pin" in caplog.text
+
+
+def test_workflow_pins_step_a_uv_pin_back_onto_the_checksum_table(caplog):
+    """The repair is the pin move itself, not the warning beside it.
+
+    A repository whose uv pin overtook the table has no forward move left when
+    the newest `setup-uv` is the one it already pins, so the sync walks uv down
+    to the newest release that action can verify.
+    """
+    workflow = {
+        Path("tests.yaml"): (
+            "jobs:\n  tests:\n    steps:\n"
+            f"      - uses: {SETUP_UV_SLUG}@{'a' * 40} # v10.0.1\n"
+            '        with:\n          version: "0.12.5"\n'
+        )
+    }
+    rc = ResolveContext(config=Config(), today=GATE_TODAY)
+    with (
+        patch("repomatic.sync_ops._pinnable_files", return_value=workflow),
+        patch("repomatic.sync_ops.pypi_candidates", return_value=list(UV_CANDIDATES)),
+        patch(
+            "repomatic.sync_ops.setup_uv_verified_versions",
+            return_value=frozenset({"0.12.3", "0.12.4"}),
+        ),
+        caplog.at_level(logging.WARNING),
+    ):
+        plan = _resolve_workflow_pins(rc)
+    assert ("uv", "0.12.5", "0.12.4") in plan.changes
+    assert 'version: "0.12.4"' in plan.file_writes[Path("tests.yaml")]
+    assert "Stepping the uv pin back" in caplog.text

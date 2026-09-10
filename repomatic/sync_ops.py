@@ -986,7 +986,7 @@ def _gate_uv_on_checksums(
     file_data: Mapping[Path, str],
     min_age: timedelta,
     today: date,
-) -> list[Candidate]:
+) -> tuple[list[Candidate], bool]:
     """Drop uv releases the pinned `setup-uv` cannot checksum-verify.
 
     The uv pin is the one literal whose adoptable range is decided by a
@@ -996,10 +996,12 @@ def _gate_uv_on_checksums(
     Walking uv forward past that table therefore trades a hash for nothing,
     which is the opposite of what pinning it was for.
 
-    So the ceiling moves when the action pin moves, not when uv publishes.
-    Nothing is downgraded: the caller only adopts a candidate newer than what
-    is pinned, so a repository already past its ceiling simply stays put until
-    `sync-action-pins` lands a `setup-uv` that covers it.
+    So the ceiling moves when the action pin moves, not when uv publishes. A
+    pin already sitting above that ceiling is the one case where the caller
+    walks a version backwards, down to the newest release the action can
+    verify. Waiting for `sync-action-pins` repairs nothing when the newest
+    `setup-uv` is the one already pinned, and every job keeps installing uv
+    unverified for as long as that holds.
 
     :param candidates: Every uv release, as offered by PyPI.
     :param pinned: The uv version currently written in the workflows.
@@ -1007,7 +1009,8 @@ def _gate_uv_on_checksums(
     :param min_age: The stabilization window, to name what the gate withheld.
     :param today: Reference date for the cooldown computation.
     :return: The candidates carrying a checksum, or all of them when no table
-        could be read.
+        could be read, paired with whether the pin on disk is itself
+        unverified.
     """
     shas = {
         pin.sha
@@ -1017,18 +1020,18 @@ def _gate_uv_on_checksums(
     }
     verified = setup_uv_verified_versions(shas)
     if verified is None:
-        return candidates
+        return candidates, False
 
     # Audit the pin already on disk, not just the one about to replace it: the
     # same reason pin_inside_cooldown exists, for a condition that likewise
     # entered the tree without passing this gate (hand-edited, or written
-    # before the gate existed). Nothing here can fix it, since the repair is a
-    # sync-action-pins bump, so it is reported rather than acted on.
-    if pinned not in verified:
+    # before the gate existed). Reported here, repaired by the caller, which
+    # steps the pin back to the newest release this table covers.
+    unverified = pinned not in verified
+    if unverified:
         logging.warning(
             f"uv {pinned} is pinned but carries no checksum in the pinned"
-            f" {SETUP_UV_SLUG}, so every job installs it unverified. Bump the"
-            " action pin to restore verification."
+            f" {SETUP_UV_SLUG}, so every job installs it unverified."
         )
 
     gated = [candidate for candidate in candidates if candidate.version in verified]
@@ -1042,7 +1045,7 @@ def _gate_uv_on_checksums(
             f" checksum in the pinned {SETUP_UV_SLUG}: holding the pin until"
             " the action pin catches up."
         )
-    return gated
+    return gated, unverified
 
 
 def _resolve_workflow_pins(rc: ResolveContext) -> SyncPlan:
@@ -1106,8 +1109,9 @@ def _resolve_workflow_pins(rc: ResolveContext) -> SyncPlan:
         candidates = (
             npm_candidates(package) if ecosystem == "npm" else pypi_candidates(package)
         )
+        unverified_uv_pin = False
         if ecosystem == "pypi" and package == SETUP_UV_PACKAGE:
-            candidates = _gate_uv_on_checksums(
+            candidates, unverified_uv_pin = _gate_uv_on_checksums(
                 candidates, current_version, file_data, min_age, today
             )
         latest = select_latest(candidates, min_age, today)
@@ -1137,7 +1141,19 @@ def _resolve_workflow_pins(rc: ResolveContext) -> SyncPlan:
             current_version,
             min_age,
         )
-        if latest is None or not is_newer(latest.version, current_version):
+        if latest is None:
+            continue
+        # The one move a pin makes downwards: a uv the pinned action cannot
+        # checksum is repaired by the newest release it can, which is older
+        # than what sits on disk. See _gate_uv_on_checksums.
+        step_back = unverified_uv_pin and is_newer(current_version, latest.version)
+        if step_back:
+            logging.warning(
+                f"Stepping the uv pin back from {current_version} to"
+                f" {latest.version}, the newest release the pinned"
+                f" {SETUP_UV_SLUG} can checksum-verify."
+            )
+        elif not is_newer(latest.version, current_version):
             continue
         resolved[(ecosystem, package)] = latest.version
         plan.dates[package] = latest.date
